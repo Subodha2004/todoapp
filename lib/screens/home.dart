@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../models/todo.dart';
 import '../widgets/todo_item.dart';
 
@@ -35,8 +36,8 @@ class _HomeState extends State<Home> {
               onPressed: () {},
             ),
             const CircleAvatar(
-              backgroundImage: AssetImage("assets/profile.png"), 
-            )
+              backgroundImage: AssetImage("assets/profile.png"),
+            ),
           ],
         ),
       ),
@@ -56,8 +57,29 @@ class _HomeState extends State<Home> {
 
   Widget _searchBox() {
     // TODO 1: Build the Search Box UI
-    return const Placeholder(fallbackHeight: 60); 
-    /*
+    return Padding(
+      padding: const EdgeInsets.all(12.0),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          child: TextField(
+            onChanged: (value) => searchData(value),
+            decoration: const InputDecoration(
+              border: InputBorder.none,
+              prefixIcon: Icon(Icons.search, color: Colors.black),
+              hintText: "Search",
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /*
     Replace the Placeholder above with the following structure:
     1. A Padding widget (EdgeInsets.all(12.0))
     2. Child: Container 
@@ -70,12 +92,53 @@ class _HomeState extends State<Home> {
            - prefixIcon: Icon(Icons.search, color: Colors.black)
            - hintText: "Search"
     */
-  }
 
   Widget _list() {
     // TODO 2: Build the Todo List UI
-    return const Expanded(child: Placeholder()); 
-    /*
+    return Expanded(
+      child: Padding(
+        padding: const EdgeInsets.all(14.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 20),
+            const Text(
+              "ALL TODOS",
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Colors.black,
+              ),
+            ),
+            const SizedBox(height: 10),
+            Expanded(
+              child: ListView(
+                children: [
+                  for (Todo i in _searchToDo.reversed)
+                    TodoItem(
+                      todo: i,
+                      onclick: () {
+                        setState(() {
+                          i.isDone = !i.isDone;
+                        });
+                      },
+                      onDelete: () {
+                        setState(() {
+                          todos.remove(i);
+                          _searchToDo.remove(i);
+                        });
+                      },
+                    ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /*
     Replace the Placeholder above with the following structure:
     1. An Expanded widget
     2. Child: Padding (EdgeInsets.all(14.0))
@@ -93,12 +156,55 @@ class _HomeState extends State<Home> {
            - onclick: Call setState to toggle the item's isDone status
            - onDelete: Call setState to remove the item from 'todos'
     */
-  }
 
   Widget _input() {
     // TODO 3: Build the Input UI
-    return const Placeholder(fallbackHeight: 80); 
-    /*
+    return Align(
+      alignment: Alignment.bottomCenter,
+      child: Padding(
+        padding: const EdgeInsets.only(left: 12, right: 12, bottom: 12),
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  child: TextField(
+                    controller: todoTextInput,
+                    decoration: const InputDecoration(
+                      border: InputBorder.none,
+                      hintText: "Add New To Do",
+                    ),
+                  ),
+                ),
+              ),
+              IconButton(
+                icon: const Icon(Icons.add),
+                onPressed: () {
+                  setState(() {
+                    todos.add(
+                      Todo(
+                        id: DateTime.now().millisecondsSinceEpoch.toString(),
+                        title: todoTextInput.text,
+                        isDone: false,
+                      ),
+                    );
+                    todoTextInput.clear();
+                  });
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  /*
     Replace the Placeholder above with the following structure:
     1. Align widget (alignment: Alignment.bottomCenter)
     2. Child: Padding (EdgeInsets.only(left: 12, right: 12, bottom: 12))
@@ -120,7 +226,6 @@ class _HomeState extends State<Home> {
              // Clear the todoTextInput controller
          }
     */
-  }
 
   void searchData(String text) {
     /*
@@ -131,5 +236,19 @@ class _HomeState extends State<Home> {
     - If not empty, filter the 'todos' list by checking if the title contains the text (make it case-insensitive!).
     - Call setState and update _searchToDo with your results.
     */
+    List<Todo> results = [];
+    if (text.isEmpty) {
+      results = todos;
+    } else {
+      results = todos
+          .where(
+            (todo) =>
+                (todo.title ?? '').toLowerCase().contains(text.toLowerCase()),
+          )
+          .toList();
+    }
+    setState(() {
+      _searchToDo = results;
+    });
   }
 }
